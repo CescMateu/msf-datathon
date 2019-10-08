@@ -1,5 +1,5 @@
 README.txt
-processed_data/
-MSF_data/
-old_scripts/
+processed_data/*
+MSF_data/*
+old_scripts/*
 .RHistory
