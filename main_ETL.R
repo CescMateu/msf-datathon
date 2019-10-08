@@ -18,6 +18,7 @@ createPrimaryMembers(input_path, output_path)
 processIndividuosTable(input_path, output_path)
 
 # 2. Temps desde alta / Canalitat d'entrada
+# TODO: Codi Joan (scripts/ETL_tiempo_Desde_alta.R)
 
 # 4. Interacciones
 processInteractionsTable(input_path, output_path)
