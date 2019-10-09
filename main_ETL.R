@@ -28,14 +28,20 @@ if (!only_final_join) {
   # 2. Temps desde alta / Canalitat d'entrada
   createChannelsAndPermanenceTime(input_path, output_path)
   
+  # 3. Aumentos + 7. Permisos Comunicacion + 8. Interacciones TLMK (Carles)
+  
   # 4. Interacciones
   processInteractionsTable(input_path, output_path)
   
   # 6. Axesor
   processAxesorTable(input_path, output_path)
   
+  # 9. Mailings Sergi (CSV ja escrit)
+  
   # 10. Aportaciones
   processAportacionesTable(input_path, output_path)
+  
+  
   
   
 }

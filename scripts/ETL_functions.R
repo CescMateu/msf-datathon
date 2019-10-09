@@ -185,6 +185,7 @@ processIndividuosTable <- function(input_path, output_path) {
   indi[, SEXO := as.factor(SEXO)]
   
   indi[, ONETOONE := as.factor(ONETOONE)]
+  indi[, SEXO := as.factor(SEXO)]
   indi[, CODPOSTAL := as.factor(CODPOSTAL)]
   
   indi[, FECHANAC_PROC := lubridate::dmy(FECHANACIMIENTO)]
@@ -195,6 +196,8 @@ processIndividuosTable <- function(input_path, output_path) {
   indi[, DAY_NACIM := lubridate::day(FECHANAC_PROC)]
   indi[, YEAR_NACIM := lubridate::year(FECHANAC_PROC)]
   indi[, FECHANAC_PROC := NULL]
+  indi[, FALLECIDO := NULL]
+  
   
   fwrite(x = indi, file = paste0(output_path, '1_individuos_ETL.csv'), sep = ';')
   
@@ -789,6 +792,14 @@ readAndWriteFinalDataset <- function(output_path, merge_aportaciones) {
   dt <- performLeftJoinFromFile(base_dt = dt, 
                                 filename = paste0(output_path, 'mailings.csv'), 
                                 keys = c('IDVERSION', 'IDMIEMBRO'))
+  
+  
+  # TLMK + AUMENTOS + PERMISOS COMUNICACION
+  print('Performing a left join with the TLMK/Aumentos/Permisos table')
+  dt <- performLeftJoinFromFile(base_dt = dt, 
+                                filename = paste0(output_path, 'tlmk_aumentos_permisos_ETL.csv'), 
+                                keys = c('IDVERSION', 'IDMIEMBRO'))
+ 
   
   # Add one last variable, the month! Very importante!
   dt[, MONTH := as.numeric(substr(IDVERSION, 5, 7))]

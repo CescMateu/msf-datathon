@@ -172,7 +172,7 @@ bst <- xgb.train(params = params,
                  early_stopping_rounds = 15)
 
 #For fuck's sake, save the model please
-xgb.save(bst, fname = paste0(path_save_oos, "/xgb_model_", run_id))
+xgb.save(bst, fname = paste0("models/xgb_model_", run_id))
 
 
 
