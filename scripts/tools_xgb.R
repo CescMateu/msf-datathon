@@ -74,9 +74,9 @@ plot_top_varimp_pred <- function (dataset, prediction.dataset = NULL, prediction
   setnames(dataset, prediction_var, "probability")
   dataset[, `:=`(percentile, as.factor(ntile(-probability, 
                                              groups))), ]
-  colors <- c("brown2", "black", x.bs.color("red"), 
-              x.bs.color("grey"), x.bs.color("orange"), x.bs.color("blue3"), 
-              x.bs.color("green"), x.bs.color("tsb"), "darkgoldenrod1", 
+  colors <- c("brown2", "black", 'red', 
+              'grey', 'orange', 'blue', 
+              'green', "darkgoldenrod1", 
               "darkorchid1")
   if (groups == 10) {
     brks <- 1:10

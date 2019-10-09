@@ -70,8 +70,8 @@ loadPackages(pckgs_to_load)
 if(!file.exists(path_save_trainings)) dir.create(path_save_trainings)
 
 # Create a directory for oos and oot results
-path_save_oos <- paste0(path_save_trainings,"/out_of_sample_results/")
-path_save_oot <- paste0(path_save_trainings,"/out_of_time_results/")
+path_save_oos <- paste0(path_save_trainings,"out_of_sample_results/")
+path_save_oot <- paste0(path_save_trainings,"out_of_time_results/")
 if(!file.exists(path_save_oos)) dir.create(path_save_oos)
 if(!file.exists(path_save_oot)) dir.create(path_save_oot)
 
@@ -125,7 +125,7 @@ dt_train_target <- s$train
 dt_dev_target <- s$test
 
 keep <- colnames(dt_train)
-keep2 <- setdiff(keep, c(target, "IDMIEMBRO"))
+keep2 <- setdiff(keep, c(target, "IDMIEMBRO", 'IDVERSION'))
 
 dev_target <- as.matrix(dt_dev_target[, get(target)])
 dt_dev_target_2 <- dt_dev_target[,keep2, with = FALSE]
@@ -141,7 +141,6 @@ dt_train_target_matrix <- as.matrix(dt_train_target_2); gc()
 dtrain <-  xgb.DMatrix(dt_train_target_matrix, 
                        label = train_target, 
                        missing = NA)
-
 
 #We have the data ready
 
@@ -188,22 +187,25 @@ dt_imp[,cumgain := cumsum(Gain)]
 dt_imp[,ind_varimp := ifelse(cumgain < 0.99,1,0)]
 imp_vars <- data.table(Feature =  dt_imp[ind_varimp == 1,]$Feature)
 fwrite(imp_vars, file = paste0(path_save_oos, "/imp_vars.csv"))
-xlsx::write.xlsx(dt_imp, paste0(path_save_oos,"/var_importance.xlsx"))
 
-plot.varimp  <- xgb_plot_varimp(var_importance = dt_imp ,
-                                nvars = 15,
-                                save = FALSE,
-                                save_path = path_save_oos,
-                                fill="brown2")
 
-var_imp_plot <- plot.varimp$plot
-var_imp_plot <- var_imp_plot + the + theme(axis.text.x = element_text(size=30, color="black"),
-                                           axis.text.y = element_text(size=30, color="black"))
-png(paste0(path_save_oos, "/varimp.png"), width = 800, height = 800)
-print(var_imp_plot)
-dev.off()
 
-pred_train <- predict( bst, dtrain)
+ggplot(data = dt_imp) +
+  geom_bar(mapping = aes(x = Feature, y = Gain), stat = 'Identity')
+# plot.varimp  <- xgb_plot_varimp(var_importance = dt_imp,
+#                                 nvars = 15,
+#                                 save = FALSE,
+#                                 save_path = path_save_oos,
+#                                 fill="brown2")
+# 
+# var_imp_plot <- plot.varimp$plot
+# var_imp_plot <- var_imp_plot + the + theme(axis.text.x = element_text(size=30, color="black"),
+#                                            axis.text.y = element_text(size=30, color="black"))
+# png(paste0(path_save_oos, "/varimp.png"), width = 800, height = 800)
+# print(var_imp_plot)
+# dev.off()
+
+pred_train <- predict(bst, dtrain)
 dt_train_target[,probability := pred_train,]
 
 ####################################################################
@@ -261,9 +263,7 @@ g <- Gain.Table(data = result_test)
 auc_gain_test <-data.table("AUC" = g$AUC)
 gains <- g$GainTable
 
-write.xlsx( gains,row.names = FALSE, col.names = TRUE,
-            file= paste0(path_save_oos, "/gains_table.xlsx"),
-            sheetName = "gainTable" )
+fwrite(gains, file= paste0(path_save_oos, "/gains_table.csv"), sep = ';')
 png(paste0(path_save_oos, "/recall.png"), width = 800, height = 800)
 print(g$Plot.Recall)
 dev.off()
@@ -278,7 +278,7 @@ dev.off()
 
 
 PR_plot <- ggplot( data =gains ,aes(x = acc.precision, y=acc.recall)) + 
-  geom_line(col=x.bs.color(("blue")), size =1.5) +
+  geom_line(col='brown2', size =1.5) +
   xlab("Precision") + ylab("Recall") + the
 
 png(paste0(path_save_oos, "/PR.png"), width = 800, height = 800)
@@ -308,7 +308,6 @@ up10 <- gains[percentile == 0.1, acc.uplift]
 x <- data.table(auc_roc_test = auc_test, 
                 auc_gain_test = auc_gain_test,
                 uplift10 = up10)
-writeLines(paste0("----> ", model_name," // AUCtest = ",round(auc_test,3) ))
 fwrite(x, paste0(path_save_oos,"/auc_roc_test.csv"))
 #rm(dtrain)
 #rm(ddev)
@@ -321,11 +320,10 @@ fwrite(x, paste0(path_save_oos,"/auc_roc_test.csv"))
 
 
 #Now that the model has been trained, evaluated and tuned over the out-of-time (ie next months) test set
-
-path_save_oot <-  "/R/shared/test/Joan/VC/XGB/trainings/out_of_time_results/"
-if(!exists("bst")) bst <-  xgb.load(paste0(path_save_oos,"/xgb_model"))
+if(!exists("bst")) bst <-  xgb.load(paste0(path_save_oos,"/xgb_model_", run_id))
 
 dt_test[,names(dt_test) := lapply(.SD, FUN = labelEncoder ), .SDcols = names(dt_test)]
+
 
 #Convert dt_test into an xgdb_matrix and predict
 
@@ -336,7 +334,6 @@ dt_2[,`:=`(IDMIEMBRO = NULL, IDVERSION =NULL),]
 dt_2_m <- as.matrix(dt_2); gc()
 dex <-  xgb.DMatrix(dt_2_m ,
                     missing = NA)
-bst <- xgb.load(str_model_j)
 pred <- predict(bst, dex)
 
 #Was the model trained for predicting 0's?
@@ -350,9 +347,11 @@ g <- Gain.Table(data = pred_table)
 auc_gain_test <-data.table("AUC" = g$AUC)
 gains <- g$GainTable
 
-write.xlsx( gains,row.names = FALSE, col.names = TRUE,
-            file= paste0(path_save_oot, "/gains_table.xlsx"),
-            sheetName = "gainTable" )
+# write.xlsx( gains,row.names = FALSE, col.names = TRUE,
+#             file= paste0(path_save_oot, "/gains_table.xlsx"),
+#             sheetName = "gainTable" )
+
+fwrite(gains, file = paste0(path_save_oot, 'gains_table.csv'), sep = ';')
 png(paste0(path_save_oot, "/recall.png"), width = 800, height = 800)
 print(g$Plot.Recall)
 dev.off()
@@ -370,7 +369,7 @@ PR_plot <- ggplot( data =gains ,aes(x = acc.precision, y=acc.recall)) +
   geom_line(col="brown2", size =1.5) +
   xlab("Precision") + ylab("Recall") + the
 
-png(paste0(probability, "/PR.png"), width = 800, height = 800)
+png(paste0(PR_plot, "/PR.png"), width = 800, height = 800)
 print(PR_plot)
 dev.off()
 
@@ -379,7 +378,7 @@ dev.off()
 metrics <- fread(paste0(path_save_oos, "/metrics.csv"))
 pred_table[,pred_cat:=ifelse(probability >=best["threshold"],1,0 ),]
 
-roc_test_oot <- roc(response =pred_table[,github?target], 
+roc_test_oot <- roc(response =pred_table[,target], 
                     predictor = pred_table[,probability],
                     algorithm = 2)
 auc_test_oot <- auc(roc_test_oot)
