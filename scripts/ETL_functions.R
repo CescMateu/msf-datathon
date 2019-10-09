@@ -136,10 +136,6 @@ createTargetVar <- function(input_path, output_path) {
 }
 
 
-
-
-
-
 createPrimaryMembers <- function(input_path, output_path) {
   
   print('ETL: Creating the base of our members')
@@ -165,7 +161,6 @@ createPrimaryMembers <- function(input_path, output_path) {
   fwrite(x = miembros_filtrar, file = paste0(output_path, 'miembros_a_filtrar.csv'), sep = ';')
   
 }
-
 
 
 processIndividuosTable <- function(input_path, output_path) {
@@ -385,11 +380,6 @@ processInteractionsTable <- function(input_path, output_path) {
 }
 
 
-
-
-
-
-
 processAxesorTable <- function(input_path, output_path) {
   
   print('ETL: Processing Axesor table')
@@ -407,8 +397,6 @@ processAxesorTable <- function(input_path, output_path) {
   fwrite(axesor, file = paste0(output_path, '6_axesor_ETL.csv'), sep = ';')
   
 }
-
-
 
 
 processAportacionesTable <- function(input_path, output_path) {
@@ -651,7 +639,6 @@ processAportacionesTable <- function(input_path, output_path) {
 }
 
 
-
 createChannelsAndPermanenceTime <- function(input_data, output_data){
   
   print('ETL: Processing Permanence time and entrance channels')
@@ -723,11 +710,6 @@ createChannelsAndPermanenceTime <- function(input_data, output_data){
   
   
 }
-
-
-
-
-
 
 
 readAndWriteFinalDataset <- function(output_path, merge_aportaciones, fecha_inicial = NULL, fecha_final = NULL,
@@ -804,13 +786,9 @@ readAndWriteFinalDataset <- function(output_path, merge_aportaciones, fecha_inic
   
   # MAILINGS
   # Codi per canviar els noms de la taula de mailings creada per el Sergi
-  a <- fread('processed_data/mailings.csv')
-  setnames(a, colnames(a), c('IDMIEMBRO', 'V1_VARIABLE_MAILING_SERGI', 'IDVERSION', 'IND_IMPACTE_POSTAL',
-                             'IND_IMPACTE_EMAIL', 'OFERTA1', 'OFERTA2', 'OFERTA3'))
-  a <- fwrite(x = a, file = 'processed_data/mailings.csv', sep = ';')
   print('Performing a left join with the Mailings table')
   dt <- performLeftJoinFromFile(base_dt = dt, 
-                                filename = paste0(output_path, 'mailings.csv'), 
+                                filename = paste0(output_path, '10_mailings_ETL.csv'), 
                                 keys = c('IDVERSION', 'IDMIEMBRO'))
   
   
