@@ -783,14 +783,9 @@ readAndWriteFinalDataset <- function(output_path, merge_aportaciones) {
                                 keys = c('IDVERSION', 'IDMIEMBRO'))
   
   # MAILINGS
-  # Codi per canviar els noms de la taula de mailings creada per el Sergi
-  # a <- fread('processed_data/mailings.csv')
-  # setnames(a, colnames(a), c('IDMIEMBRO', 'V1_VARIABLE_MAILING_SERGI', 'IDVERSION', 'IND_IMPACTE_POSTAL', 
-  #                            'IND_IMPACTE_EMAIL', 'OFERTA1', 'OFERTA2', 'OFERTA3'))
-  # a <- fwrite(x = a, file = 'processed_data/mailings.csv', sep = ';')
   print('Performing a left join with the Mailings table')
   dt <- performLeftJoinFromFile(base_dt = dt, 
-                                filename = paste0(output_path, 'mailings.csv'), 
+                                filename = paste0(output_path, '10_mailings_ETL.csv'), 
                                 keys = c('IDVERSION', 'IDMIEMBRO'))
   
   
