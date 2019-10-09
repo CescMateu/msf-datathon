@@ -154,6 +154,14 @@ createPrimaryMembers <- function(input_path, output_path) {
   }
   
   miembros_filtrar = dt[, .(IDMIEMBRO = unique(IDMIEMBRO))]
+  
+  # Also add the validation customers
+  val_customers <- fread(paste0(output_path, 'listado_validacion.txt'))
+  setnames(val_customers, 'x', 'IDMIEMBRO')
+  
+  miembros_filtrar <- rbind(miembros_filtrar, val_customers)
+  miembros_filtrar <- miembros_filtrar[, .(IDMIEMBRO = unique(IDMIEMBRO))]
+  
   fwrite(x = miembros_filtrar, file = paste0(output_path, 'miembros_a_filtrar.csv'), sep = ';')
   
 }
@@ -408,7 +416,7 @@ processAportacionesTable <- function(input_path, output_path) {
   print('ETL: Processing Aportaciones table')
   
   #big_output <- data.table()
-   
+  
   path_data <- input_path
   path_save <- output_path
   
@@ -479,7 +487,7 @@ processAportacionesTable <- function(input_path, output_path) {
     
     dt_cli_aux <- merge(dt_cli_aux,dt_agg, by="idmiembro", all.x=TRUE )
     
-  
+    
     ###################################################################################################
     
     #Tipus donatiu impagat
@@ -497,7 +505,7 @@ processAportacionesTable <- function(input_path, output_path) {
     
     dt_cli_aux <- merge(dt_cli_aux,dt_agg, by="idmiembro", all.x=TRUE )
     
-
+    
     ################################################################################################### 
     
     # #Tipus donatiu cancelat
@@ -515,7 +523,7 @@ processAportacionesTable <- function(input_path, output_path) {
     
     dt_cli_aux <- merge(dt_cli_aux,dt_agg, by="idmiembro", all.x=TRUE )
     
-
+    
     ################################################################################################### 
     
     ###### a 6 mesos ########
@@ -579,7 +587,7 @@ processAportacionesTable <- function(input_path, output_path) {
     # 
     # 
     # dt_cli_aux <- merge(dt_cli_aux,dt_agg, by="idmiembro", all.x=TRUE )
-
+    
     #Tipus soci
     dt_agg <- dt_ap[estado == "C" & tipoaportacion == "S" & version_aportacion %in% vm12,
                     .( impop_12m_soci_C = sum(importe),
@@ -587,7 +595,7 @@ processAportacionesTable <- function(input_path, output_path) {
     
     dt_cli_aux <- merge(dt_cli_aux,dt_agg, by="idmiembro", all.x=TRUE )
     
-
+    
     ###################################################################################################
     #Tipus donatiu impagat
     # dt_agg <- dt_ap[ estado == "I" & tipoaportacion == "D" & version_aportacion %in% vm3,
@@ -597,16 +605,16 @@ processAportacionesTable <- function(input_path, output_path) {
     # 
     # 
     # dt_cli_aux <- merge(dt_cli_aux,dt_agg, by="idmiembro", all.x=TRUE )
-
+    
     #Tipus soci impagat
     dt_agg <- dt_ap[ estado == "I"& tipoaportacion == "S" & version_aportacion %in% vm3,
                      .( impop_12m_soci_I = sum(importe),
                         numop_12m_devol_soci_I = sum(numerodevoluciones)), by = idmiembro]
-
+    
     dt_cli_aux <- merge(dt_cli_aux,dt_agg, by="idmiembro", all.x=TRUE )
-
+    
     ###################################################################################################
-
+    
     #Tipus donatiu cancelat
     # dt_agg <- dt_ap[ estado == "L" & tipoaportacion == "D" & version_aportacion %in% vm3,
     #                  .( impop_12m_donatiu_L = sum(importe),
@@ -615,14 +623,14 @@ processAportacionesTable <- function(input_path, output_path) {
     # 
     # 
     # dt_cli_aux <- merge(dt_cli_aux,dt_agg, by="idmiembro", all.x=TRUE )
-
+    
     #Tipus soci cancelat
     dt_agg <- dt_ap[ estado == "L"& tipoaportacion == "S" & version_aportacion %in% vm3,
                      .( impop_12m_soci_L = sum(importe),
                         numop_12m_devol_soci_L = sum(numerodevoluciones)), by = idmiembro]
-
+    
     dt_cli_aux <- merge(dt_cli_aux,dt_agg, by="idmiembro", all.x=TRUE )
-
+    
     
     #####
     
@@ -722,19 +730,31 @@ createChannelsAndPermanenceTime <- function(input_data, output_data){
 
 
 
-readAndWriteFinalDataset <- function(output_path, merge_aportaciones) {
+readAndWriteFinalDataset <- function(output_path, merge_aportaciones, fecha_inicial = NULL, fecha_final = NULL,
+                                     output_name, exploitation = FALSE) {
   
   # Define the range of IDVERSIONS
-  versions <- as.character(seq(ymd('2012-01-01'), ymd('2018-08-01'), by = 'months', format = "%Y-%m"))
+  versions <- as.character(seq(ymd(fecha_inicial), ymd(fecha_final), by = 'months', format = "%Y-%m"))
   versions <- substr(gsub("-","",versions),1,6)
   
   # TARGET DATA
-  print('Reading target data...')
-  dt <- data.table()
-  for (t in versions) {
-    dt <- rbind(dt, fread(paste0(output_path, 'target/bajas_', t, '.csv')))
+  if (!exploitation) {
+    
+    print('Reading target data...')
+    dt <- data.table()
+    for (t in versions) {
+      dt <- rbind(dt, fread(paste0(output_path, 'target/bajas_', t, '.csv')))
+    }
+    setkey(dt, IDMIEMBRO)
+    
+  } else {
+    
+    dt <- fread(paste0(output_path, 'listado_validacion.txt'))
+    setnames(dt, 'x', 'IDMIEMBRO')
+    dt[, IDVERSION := '201902']
+    
   }
-  setkey(dt, IDMIEMBRO)
+  
   
   # INDIVIDUOS
   print('Performing a left join with the Individuos table')
@@ -783,9 +803,14 @@ readAndWriteFinalDataset <- function(output_path, merge_aportaciones) {
                                 keys = c('IDVERSION', 'IDMIEMBRO'))
   
   # MAILINGS
+  # Codi per canviar els noms de la taula de mailings creada per el Sergi
+  a <- fread('processed_data/mailings.csv')
+  setnames(a, colnames(a), c('IDMIEMBRO', 'V1_VARIABLE_MAILING_SERGI', 'IDVERSION', 'IND_IMPACTE_POSTAL',
+                             'IND_IMPACTE_EMAIL', 'OFERTA1', 'OFERTA2', 'OFERTA3'))
+  a <- fwrite(x = a, file = 'processed_data/mailings.csv', sep = ';')
   print('Performing a left join with the Mailings table')
   dt <- performLeftJoinFromFile(base_dt = dt, 
-                                filename = paste0(output_path, '10_mailings_ETL.csv'), 
+                                filename = paste0(output_path, 'mailings.csv'), 
                                 keys = c('IDVERSION', 'IDMIEMBRO'))
   
   
@@ -794,14 +819,14 @@ readAndWriteFinalDataset <- function(output_path, merge_aportaciones) {
   dt <- performLeftJoinFromFile(base_dt = dt, 
                                 filename = paste0(output_path, 'tlmk_aumentos_permisos_ETL.csv'), 
                                 keys = c('IDVERSION', 'IDMIEMBRO'))
- 
+  
   
   # Add one last variable, the month! Very importante!
   dt[, MONTH := as.numeric(substr(IDVERSION, 5, 7))]
   
   # Save final dataset into a file
   print('Writing final dataset...')
-  fwrite(x = dt, file = paste0(output_path, 'final_dataset.csv'), sep = ';')
+  fwrite(x = dt, file = paste0(output_path, output_name), sep = ';')
   
   
   print('Process finished!')
