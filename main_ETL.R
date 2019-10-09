@@ -3,6 +3,8 @@ gc()
 
 library(data.table)
 library(lubridate)
+library(dplyr)
+library(stringr)
 
 source('scripts/tools.R')
 source('scripts/ETL_functions.R')
