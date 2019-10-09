@@ -47,5 +47,10 @@ if (!only_final_join) {
 }
 
 # Join all the data together
-readAndWriteFinalDataset(output_path, merge_aportaciones)
+readAndWriteFinalDataset(output_path, merge_aportaciones, 
+                         fecha_inicial = '2012-01-01', fecha_final = '2018-02-01',
+                         output_name = 'final_dataset.csv', exploitation = FALSE)
+
+readAndWriteFinalDataset(output_path, merge_aportaciones, 
+                         output_name = 'exploitation_dataset.csv', exploitation = TRUE)
 
