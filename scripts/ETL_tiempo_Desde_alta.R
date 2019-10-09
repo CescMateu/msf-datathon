@@ -1,41 +1,24 @@
 
-path_data <- input_path
+createChannelsAndPermanenceTime <- function(input_data, output_data){
 
-
-#POSAR silently =FALSE si volem que el resultat es
-#carregui a l'enviorment
-
-#IDEM per save, pero en aqeust cas guardant a csv
-
-load_days_from_alta <- function(path_data,
-                                save =FALSE,
-                                silently=FALSE,
-                                path_save =NULL){
+  # Read data
+  clientes_filtrar <- fread(paste0(output_data,"/miembros_a_filtrar.csv"))$IDMIEMBRO
+  dt <- fread(paste0(input_data,"/2.ALTASYBAJAS_train.txt"))
   
-  require(lubridate)
-  
-  DifferenceInDays <- function(date1,date2){
-    
-    dif <- abs(as.numeric(date1 - date2))
-    return(dif) 
-    
-  }
-  
-  SuitableDate <- function(x){
-    x <- gsub(pattern="-", replacement="", x = substr(x,1,10))
-    x <- as.Date(x, format="%Y%m%d")
-    return(x)
-  }
-  
-  clientes_filtrar <- fread(paste0(path_data,"/miembros_a_filtrar.csv"))$IDMIEMBRO
-  dt <- fread(paste0(path_data,"/2.ALTASYBAJAS_train.txt"))
+  # Filter data with the selected members
   dt_filt <- dt[IDMIEMBRO %in% clientes_filtrar & IDREGISTRO==0,.(IDMIEMBRO,FECHA,IDMEDIO)]
+  
+  # Which are the major entrance channels?
   dt_filt[,medio_entrada:=as.numeric(as.factor(IDMEDIO))]
   major_cats <- dt_filt[,.(count=.N),by =IDMEDIO][order(-count)][1:20][,IDMEDIO]  
   dt_filt[,canal_entrada:=ifelse(IDMEDIO %in% major_cats,IDMEDIO,"otro"),]
   dt_filt[,canal_entrada_num:=as.numeric(as.factor(canal_entrada))]
   dt_agg <- dt_filt[,.(count=.N), by =list(canal_entrada, canal_entrada_num)]
-  #fwrite(dt_agg,paste0(path_save,"/TD_canales_entrada.csv"))
+  
+  # Write the channels dataset
+  fwrite(dt_agg,paste0(output_data,"/canales_entrada_ETL.csv"), sep = ';')
+  
+  # Continue with the permanence time
   dt_filt[,canal_entrada:=NULL,]
   
   dt_filt[, FECHA2 := lubridate::dmy_hms(FECHA)]
@@ -71,27 +54,20 @@ load_days_from_alta <- function(path_data,
     dt_aux[,num_dias_desde_alta := ifelse(fc_alta >id_version_date, NA, DifferenceInDays(fc_alta,id_version_date)  ),]
     dt_aux[,num_meses_desde_alta:=num_dias_desde_alta/30]
     dt_aux[,num_anyos_desde_alta:=num_dias_desde_alta/365]
-    dt_aux[,id_version := v]
+    dt_aux[,IDVERSION := v]
     dt_aux[,id_version_date :=NULL,]
     dt_aux[,fc_alta:=NULL,]
     dt_list[[i]] <- dt_aux
   }
   
-  
   dt_all <- rbindlist(dt_list, use.names = TRUE)
+  setnames(dt_all, colnames(dt_all), toupper(colnames(dt_all)))
   
-  if(save){
-    fwrite(paste0(path_save,"/data_dias_desde_alta.csv"))
-  }
+  # Write the result
+  fwrite(x = dt_all, file = paste0(output_data,"time_from_entrance_ETL.csv"), sep = ';')
   
-  if(silently == FALSE){
-    return(dt_all)
-  }
+  
 }
-
-dt_altas <- load_days_from_alta(path_data =path_data,
-                                save = FALSE,
-                                silently=FALSE)
 
 
 

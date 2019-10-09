@@ -59,19 +59,39 @@ allNAsToZero <-  function(DT, cols = 'all') {
 
 performLeftJoinFromFile <- function(base_dt, filename, keys) {
   
-  test <- fread(filename, sep = ';', nrows = 5)
-  
-  if (!all(keys %in% colnames(test))) {
-    stop(paste0('Keys not found in colnames: ', paste0(colnames(test), collapse = ', ')))
+  if(!file.exists(filename)) {
+    
+    warning(paste0('Filename does not exist, returning original dataset. (', filename, ')'))
+    return(base_dt)
+    
+  } else {
+    
+    test <- fread(filename, sep = ';', nrows = 5)
+    
+    if (!all(keys %in% colnames(test))) {
+      stop(paste0('Keys not found in colnames: ', paste0(colnames(test), collapse = ', ')))
+    }
+    
+    # Load data
+    new_dt <- fread(filename, sep = ';')
+    
+    # Left join
+    base_dt <- merge(base_dt, new_dt, by = keys, all.x = TRUE)
+    
+    return(base_dt)
+    }
   }
+
+
+DifferenceInDays <- function(date1,date2){
   
-  # Load data
-  new_dt <- fread(filename, sep = ';')
+  dif <- abs(as.numeric(date1 - date2))
+  return(dif) 
   
-  # Left join
-  base_dt <- merge(base_dt, new_dt, by = keys, all.x = TRUE)
-  
-  return(base_dt)
 }
 
-
+SuitableDate <- function(x){
+  x <- gsub(pattern="-", replacement="", x = substr(x,1,10))
+  x <- as.Date(x, format="%Y%m%d")
+  return(x)
+}
