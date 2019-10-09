@@ -779,6 +779,19 @@ readAndWriteFinalDataset <- function(output_path, merge_aportaciones) {
                                 filename = paste0(output_path, '4_interacciones_ETL.csv'), 
                                 keys = c('IDVERSION', 'IDMIEMBRO'))
   
+  # MAILINGS
+  # Codi per canviar els noms de la taula de mailings creada per el Sergi
+  # a <- fread('processed_data/mailings.csv')
+  # setnames(a, colnames(a), c('IDMIEMBRO', 'V1_VARIABLE_MAILING_SERGI', 'IDVERSION', 'IND_IMPACTE_POSTAL', 
+  #                            'IND_IMPACTE_EMAIL', 'OFERTA1', 'OFERTA2', 'OFERTA3'))
+  # a <- fwrite(x = a, file = 'processed_data/mailings.csv', sep = ';')
+  print('Performing a left join with the Mailings table')
+  dt <- performLeftJoinFromFile(base_dt = dt, 
+                                filename = paste0(output_path, 'mailings.csv'), 
+                                keys = c('IDVERSION', 'IDMIEMBRO'))
+  
+  # Add one last variable, the month! Very importante!
+  dt[, MONTH := as.numeric(substr(IDVERSION, 5, 7))]
   
   # Save final dataset into a file
   print('Writing final dataset...')
