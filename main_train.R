@@ -26,13 +26,13 @@ path_save_trainings <-  "output/"
 
 # We set these two hyperparameters free for tuning
 # Learning_rate
-LR <- 0.05
+LR <- 0.2
 # Number of rounds
 NROUNDS <- 500
 
 
 # Wheter to take a random sample of the training dataset and the proportion to keep
-take_a_sample <- TRUE
+take_a_sample <- FALSE
 prop_sample <- 0.1 #this would  only keep 10% of the full dataset regardless of the target
 
 ########################################################################################################
@@ -86,6 +86,8 @@ if(!file.exists(path_save_oot)) dir.create(path_save_oot)
 
 #Uncomment!!!!
 dt <- fread(file_train_name, sep = ';')
+c <- colnames(dt)
+if("FALLECIDO" %in% c) dt[,FALLECIDO:=NULL,]
 
 # Split the full dataset into train-test following a version criteria
 all_versions <- unique(dt[,IDVERSION])
