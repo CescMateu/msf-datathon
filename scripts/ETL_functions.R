@@ -715,12 +715,14 @@ createChannelsAndPermanenceTime <- function(input_data, output_data){
 readAndWriteFinalDataset <- function(output_path, merge_aportaciones, fecha_inicial = NULL, fecha_final = NULL,
                                      output_name, exploitation = FALSE) {
   
-  # Define the range of IDVERSIONS
-  versions <- as.character(seq(ymd(fecha_inicial), ymd(fecha_final), by = 'months', format = "%Y-%m"))
-  versions <- substr(gsub("-","",versions),1,6)
+  
   
   # TARGET DATA
   if (!exploitation) {
+    
+    # Define the range of IDVERSIONS
+    versions <- as.character(seq(ymd(fecha_inicial), ymd(fecha_final), by = 'months', format = "%Y-%m"))
+    versions <- substr(gsub("-","",versions),1,6)
     
     print('Reading target data...')
     dt <- data.table()
@@ -733,7 +735,7 @@ readAndWriteFinalDataset <- function(output_path, merge_aportaciones, fecha_inic
     
     dt <- fread(paste0(output_path, 'listado_validacion.txt'))
     setnames(dt, 'x', 'IDMIEMBRO')
-    dt[, IDVERSION := '201902']
+    dt[, IDVERSION := 201902]
     
   }
   
