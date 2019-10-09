@@ -12,7 +12,8 @@ source('scripts/ETL_functions.R')
 input_path <- 'MSF_data/'
 output_path <- 'processed_data/'
 
-only_final_join = TRUE # Decide whether you want to perform the whole ETL
+merge_aportaciones <- FALSE # Do you need to merge all the aportaciones or you have already done it?
+only_final_join <- TRUE # Decide whether you want to perform the whole ETL
 
 
 if (!only_final_join) {
@@ -33,12 +34,12 @@ if (!only_final_join) {
   # 6. Axesor
   processAxesorTable(input_path, output_path)
   
-  # 9. Aportaciones
-  # processAportacionesTable(input_path, output_path)
+  # 10. Aportaciones
+  processAportacionesTable(input_path, output_path)
   
   
 }
 
 # Join all the data together
-readAndWriteFinalDataset(output_path)
+readAndWriteFinalDataset(output_path, merge_aportaciones)
 

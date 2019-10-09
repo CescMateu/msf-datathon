@@ -404,13 +404,18 @@ processAportacionesTable <- function(input_path, output_path) {
   
   print('ETL: Processing Aportaciones table')
   
-  big_output <- data.table()
+  #big_output <- data.table()
    
   path_data <- input_path
   path_save <- output_path
   
   dt_miembros <- fread(paste0(path_save,"miembros_a_filtrar.csv"))
   dt_ap <- fread(paste0(path_data,"/10.APORTACIONES_train.txt"))
+  #nrow(dt_ap) # 27104806
+  
+  dt_ap <- merge(dt_miembros, dt_ap, by = 'IDMIEMBRO', all.x = TRUE)
+  #nrow(dt_ap) # 22989435
+  
   c <- colnames(dt_ap)
   setnames(dt_ap,c,tolower(c))
   
@@ -457,201 +462,180 @@ processAportacionesTable <- function(input_path, output_path) {
     vm3 <- getKPeriods(v, -2)
     
     #Tipus donatiu Cobrat
-    dt_agg <- dt_ap[ estado == "C" & tipoaportacion == "D" & version_aportacion %in% vm3,
-                     .( impop_3m_donatiu_C = sum(importe),
-                        numop_3m_donatiu_C = .N,
-                        numop_3m_devol_donatiu_C = sum(numerodevoluciones)), by = idmiembro]
-    
-    
-    dt_cli_aux <- merge(dt_cli_aux,dt_agg, by="idmiembro", all.x=TRUE )
+    # dt_agg <- dt_ap[ estado == "C" & tipoaportacion == "D" & version_aportacion %in% vm3,
+    #                  .( impop_3m_donatiu_C = sum(importe),
+    #                     numop_3m_devol_donatiu_C = sum(numerodevoluciones)), by = idmiembro]
+    # 
+    # 
+    # dt_cli_aux <- merge(dt_cli_aux,dt_agg, by="idmiembro", all.x=TRUE )
     
     #Tipus soci cobrat
     dt_agg <- dt_ap[ estado == "C"& tipoaportacion == "S" & version_aportacion %in% vm3,
                      .( impop_3m_soci_C = sum(importe),
-                        numop_3m_soci_C = .N,
                         numop_3m_devol_soci_C = sum(numerodevoluciones)), by = idmiembro]
     
     dt_cli_aux <- merge(dt_cli_aux,dt_agg, by="idmiembro", all.x=TRUE )
     
-    dt_cli_aux[,impop_3m_total_C := impop_3m_donatiu_C + impop_3m_soci_C ,]
-    dt_cli_aux[,numop_3m_total_C := numop_3m_donatiu_C + numop_3m_soci_C ,]
+  
     ###################################################################################################
     
     #Tipus donatiu impagat
-    dt_agg <- dt_ap[ estado == "I" & tipoaportacion == "D" & version_aportacion %in% vm3,
-                     .( impop_3m_donatiu_I = sum(importe),
-                        numop_3m_donatiu_I = .N,
-                        numop_3m_devol_donatiu_I = sum(numerodevoluciones)), by = idmiembro]
-    
-    
-    dt_cli_aux <- merge(dt_cli_aux,dt_agg, by="idmiembro", all.x=TRUE )
+    # dt_agg <- dt_ap[ estado == "I" & tipoaportacion == "D" & version_aportacion %in% vm3,
+    #                  .( impop_3m_donatiu_I = sum(importe),
+    #                     numop_3m_devol_donatiu_I = sum(numerodevoluciones)), by = idmiembro]
+    # 
+    # 
+    # dt_cli_aux <- merge(dt_cli_aux,dt_agg, by="idmiembro", all.x=TRUE )
     
     #Tipus soci impagat
     dt_agg <- dt_ap[ estado == "I"& tipoaportacion == "S" & version_aportacion %in% vm3,
                      .( impop_3m_soci_I = sum(importe),
-                        numop_3m_soci_I = .N,
                         numop_3m_devol_soci_I = sum(numerodevoluciones)), by = idmiembro]
     
     dt_cli_aux <- merge(dt_cli_aux,dt_agg, by="idmiembro", all.x=TRUE )
     
-    dt_cli_aux[,impop_3m_total_I := impop_3m_donatiu_I + impop_3m_soci_I ,]
-    dt_cli_aux[,numop_3m_total_I := numop_3m_donatiu_I + numop_3m_soci_I ,]
+
     ################################################################################################### 
     
-    #Tipus donatiu cancelat
-    dt_agg <- dt_ap[ estado == "L" & tipoaportacion == "D" & version_aportacion %in% vm3,
-                     .( impop_3m_donatiu_L = sum(importe),
-                        numop_3m_donatiu_L = .N,
-                        numop_3m_devol_donatiu_L = sum(numerodevoluciones)), by = idmiembro]
-    
-    
-    dt_cli_aux <- merge(dt_cli_aux,dt_agg, by="idmiembro", all.x=TRUE )
+    # #Tipus donatiu cancelat
+    # dt_agg <- dt_ap[ estado == "L" & tipoaportacion == "D" & version_aportacion %in% vm3,
+    #                  .( impop_3m_donatiu_L = sum(importe),
+    #                     numop_3m_devol_donatiu_L = sum(numerodevoluciones)), by = idmiembro]
+    # 
+    # 
+    # dt_cli_aux <- merge(dt_cli_aux,dt_agg, by="idmiembro", all.x=TRUE )
     
     #Tipus soci cancelat
     dt_agg <- dt_ap[ estado == "L"& tipoaportacion == "S" & version_aportacion %in% vm3,
                      .( impop_3m_soci_L = sum(importe),
-                        numop_3m_soci_L = .N,
                         numop_3m_devol_soci_L = sum(numerodevoluciones)), by = idmiembro]
     
     dt_cli_aux <- merge(dt_cli_aux,dt_agg, by="idmiembro", all.x=TRUE )
     
-    dt_cli_aux[,impop_3m_total_L := impop_3m_donatiu_L + impop_3m_soci_L ,]
-    dt_cli_aux[,numop_3m_total_L := numop_3m_donatiu_L + numop_3m_soci_L ,]
+
     ################################################################################################### 
     
     ###### a 6 mesos ########
     vm6 <- getKPeriods(v, -5)
     #Tipus donatiu
-    dt_agg <- dt_ap[estado == "C" & tipoaportacion == "D" & version_aportacion %in% vm6,
-                    .( impop_6m_donatiu_C = sum(importe),
-                       numop_6m_donatiu_C = .N,
-                       numop_6m_devol_donatiu_C = sum(numerodevoluciones)), by = idmiembro]
-    
-    
-    dt_cli_aux <- merge(dt_cli_aux,dt_agg, by="idmiembro", all.x=TRUE )
+    # dt_agg <- dt_ap[estado == "C" & tipoaportacion == "D" & version_aportacion %in% vm6,
+    #                 .( impop_6m_donatiu_C = sum(importe),
+    #                    numop_6m_devol_donatiu_C = sum(numerodevoluciones)), by = idmiembro]
+    # 
+    # 
+    # dt_cli_aux <- merge(dt_cli_aux,dt_agg, by="idmiembro", all.x=TRUE )
     
     #Tipus soci
     dt_agg <- dt_ap[ tipoaportacion == "S" & version_aportacion %in% vm6,
                      .( impop_6m_soci_C = sum(importe),
-                        numop_6m_soci_C = .N,
                         numop_6m_devol_soci_C = sum(numerodevoluciones)), by = idmiembro]
     dt_cli_aux <- merge(dt_cli_aux,dt_agg, by="idmiembro", all.x=TRUE )
-    dt_cli_aux[,impop_6m_total_C := impop_6m_donatiu_C + impop_6m_soci_C ,]
-    dt_cli_aux[,numop_6m_total_C := numop_6m_donatiu_C + numop_6m_soci_C ,]
+    
     ###################################################################################################
     
     #Tipus donatiu impagat
-    dt_agg <- dt_ap[ estado == "I" & tipoaportacion == "D" & version_aportacion %in% vm3,
-                     .( impop_6m_donatiu_I = sum(importe),
-                        numop_6m_donatiu_I = .N,
-                        numop_6m_devol_donatiu_I = sum(numerodevoluciones)), by = idmiembro]
-    
-    
-    dt_cli_aux <- merge(dt_cli_aux,dt_agg, by="idmiembro", all.x=TRUE )
+    # dt_agg <- dt_ap[ estado == "I" & tipoaportacion == "D" & version_aportacion %in% vm3,
+    #                  .( impop_6m_donatiu_I = sum(importe),
+    #                     numop_6m_devol_donatiu_I = sum(numerodevoluciones)), by = idmiembro]
+    # 
+    # 
+    # dt_cli_aux <- merge(dt_cli_aux,dt_agg, by="idmiembro", all.x=TRUE )
     
     #Tipus soci impagat
     dt_agg <- dt_ap[ estado == "I"& tipoaportacion == "S" & version_aportacion %in% vm3,
                      .( impop_6m_soci_I = sum(importe),
-                        numop_6m_soci_I = .N,
                         numop_6m_devol_soci_I = sum(numerodevoluciones)), by = idmiembro]
     
     dt_cli_aux <- merge(dt_cli_aux,dt_agg, by="idmiembro", all.x=TRUE )
     
-    dt_cli_aux[,impop_6m_total_I := impop_6m_donatiu_I + impop_6m_soci_I ,]
-    dt_cli_aux[,numop_6m_total_I := numop_6m_donatiu_I + numop_6m_soci_I ,]
     ################################################################################################### 
     
     #Tipus donatiu cancelat
-    dt_agg <- dt_ap[ estado == "L" & tipoaportacion == "D" & version_aportacion %in% vm3,
-                     .( impop_6m_donatiu_L = sum(importe),
-                        numop_6m_donatiu_L = .N,
-                        numop_6m_devol_donatiu_L = sum(numerodevoluciones)), by = idmiembro]
-    
-    
-    dt_cli_aux <- merge(dt_cli_aux,dt_agg, by="idmiembro", all.x=TRUE )
+    # dt_agg <- dt_ap[ estado == "L" & tipoaportacion == "D" & version_aportacion %in% vm3,
+    #                  .( impop_6m_donatiu_L = sum(importe),
+    #                     numop_6m_devol_donatiu_L = sum(numerodevoluciones)), by = idmiembro]
+    # 
+    # 
+    # dt_cli_aux <- merge(dt_cli_aux,dt_agg, by="idmiembro", all.x=TRUE )
     
     #Tipus soci cancelat
     dt_agg <- dt_ap[ estado == "L"& tipoaportacion == "S" & version_aportacion %in% vm3,
                      .( impop_6m_soci_L = sum(importe),
-                        numop_6m_soci_L = .N,
                         numop_6m_devol_soci_L = sum(numerodevoluciones)), by = idmiembro]
     
     dt_cli_aux <- merge(dt_cli_aux,dt_agg, by="idmiembro", all.x=TRUE )
     
-    dt_cli_aux[,impop_6m_total_L := impop_6m_donatiu_L + impop_6m_soci_L ,]
-    dt_cli_aux[,numop_6m_total_L := numop_6m_donatiu_L + numop_6m_soci_L ,]
     ################################################################################################### 
     ###### a 12 mesos ########
     vm12 <- getKPeriods(v, -11)
     #Tipus donatiu
-    dt_agg <- dt_ap[ estado == "C" & tipoaportacion == "D" & version_aportacion %in% vm6,
-                     .( impop_12m_donatiu_C = sum(importe),
-                        numop_12m_donatiu_C = .N,
-                        numop_12m_devol_donatiu_C = sum(numerodevoluciones)), by = idmiembro]
-    
-    
-    dt_cli_aux <- merge(dt_cli_aux,dt_agg, by="idmiembro", all.x=TRUE )
-    
+    # dt_agg <- dt_ap[ estado == "C" & tipoaportacion == "D" & version_aportacion %in% vm6,
+    #                  .( impop_12m_donatiu_C = sum(importe),
+    #                     numop_12m_donatiu_C = .N,
+    #                     numop_12m_devol_donatiu_C = sum(numerodevoluciones)), by = idmiembro]
+    # 
+    # 
+    # dt_cli_aux <- merge(dt_cli_aux,dt_agg, by="idmiembro", all.x=TRUE )
+
     #Tipus soci
     dt_agg <- dt_ap[estado == "C" & tipoaportacion == "S" & version_aportacion %in% vm12,
                     .( impop_12m_soci_C = sum(importe),
-                       numop_12m_soci_C = .N,
                        numop_12m_devol_soci_C = sum(numerodevoluciones)), by = idmiembro]
+    
     dt_cli_aux <- merge(dt_cli_aux,dt_agg, by="idmiembro", all.x=TRUE )
-    dt_cli_aux[,impop_12m_total_C := impop_12m_donatiu_C + impop_12m_soci_C ,]
-    dt_cli_aux[,numop_12m_total_C := numop_12m_donatiu_C + numop_12m_soci_C ,]
-    ###################################################################################################   
+    
+
+    ###################################################################################################
     #Tipus donatiu impagat
-    dt_agg <- dt_ap[ estado == "I" & tipoaportacion == "D" & version_aportacion %in% vm3,
-                     .( impop_12m_donatiu_I = sum(importe),
-                        numop_12m_donatiu_I = .N,
-                        numop_12m_devol_donatiu_I = sum(numerodevoluciones)), by = idmiembro]
-    
-    
-    dt_cli_aux <- merge(dt_cli_aux,dt_agg, by="idmiembro", all.x=TRUE )
-    
+    # dt_agg <- dt_ap[ estado == "I" & tipoaportacion == "D" & version_aportacion %in% vm3,
+    #                  .( impop_12m_donatiu_I = sum(importe),
+    #                     numop_12m_donatiu_I = .N,
+    #                     numop_12m_devol_donatiu_I = sum(numerodevoluciones)), by = idmiembro]
+    # 
+    # 
+    # dt_cli_aux <- merge(dt_cli_aux,dt_agg, by="idmiembro", all.x=TRUE )
+
     #Tipus soci impagat
     dt_agg <- dt_ap[ estado == "I"& tipoaportacion == "S" & version_aportacion %in% vm3,
                      .( impop_12m_soci_I = sum(importe),
-                        numop_12m_soci_I = .N,
                         numop_12m_devol_soci_I = sum(numerodevoluciones)), by = idmiembro]
-    
+
     dt_cli_aux <- merge(dt_cli_aux,dt_agg, by="idmiembro", all.x=TRUE )
-    
-    dt_cli_aux[,impop_12m_total_I := impop_12m_donatiu_I + impop_12m_soci_I ,]
-    dt_cli_aux[,numop_12m_total_I := numop_12m_donatiu_I + numop_12m_soci_I ,]
-    ################################################################################################### 
-    
+
+    ###################################################################################################
+
     #Tipus donatiu cancelat
-    dt_agg <- dt_ap[ estado == "L" & tipoaportacion == "D" & version_aportacion %in% vm3,
-                     .( impop_12m_donatiu_L = sum(importe),
-                        numop_12m_donatiu_L = .N,
-                        numop_12m_devol_donatiu_L = sum(numerodevoluciones)), by = idmiembro]
-    
-    
-    dt_cli_aux <- merge(dt_cli_aux,dt_agg, by="idmiembro", all.x=TRUE )
-    
+    # dt_agg <- dt_ap[ estado == "L" & tipoaportacion == "D" & version_aportacion %in% vm3,
+    #                  .( impop_12m_donatiu_L = sum(importe),
+    #                     numop_12m_donatiu_L = .N,
+    #                     numop_12m_devol_donatiu_L = sum(numerodevoluciones)), by = idmiembro]
+    # 
+    # 
+    # dt_cli_aux <- merge(dt_cli_aux,dt_agg, by="idmiembro", all.x=TRUE )
+
     #Tipus soci cancelat
     dt_agg <- dt_ap[ estado == "L"& tipoaportacion == "S" & version_aportacion %in% vm3,
                      .( impop_12m_soci_L = sum(importe),
-                        numop_12m_soci_L = .N,
                         numop_12m_devol_soci_L = sum(numerodevoluciones)), by = idmiembro]
-    
+
     dt_cli_aux <- merge(dt_cli_aux,dt_agg, by="idmiembro", all.x=TRUE )
+
     
-    dt_cli_aux[,impop_12m_total_L := impop_12m_donatiu_L + impop_12m_soci_L ,]
-    dt_cli_aux[,numop_12m_total_L := numop_12m_donatiu_L + numop_12m_soci_L ,]
+    #####
+    
+    allNAsToZero(DT = dt_cli_aux, cols = 'all')
+    
+    fwrite(x = dt_cli_aux, file = paste0(path_save, 'aportaciones/aportaciones_chunk_', v, '.csv'), sep = ';')
     
     ###############################################
     #Concatenar en el dataset final
-    dt_cli_aux <- merge(dt_cli_aux, dt_miembros, by.x="idmiembro", by.y="IDMIEMBRO", all= FALSE)
-    big_output <- rbind(big_output, dt_cli_aux)
+    #big_output <- rbind(big_output, dt_cli_aux)
     
     # Alliberar memòria
     rm(dt_agg); rm(dt_cli_aux)
   }
   
-  fwrite(big_output, file = paste0(path_save, "9_aportaciones_ETL.csv"), sep = ';')
+  #fwrite(big_output, file = paste0(path_save, "9_aportaciones_ETL.csv"), sep = ';')
   
 }
 
@@ -735,7 +719,7 @@ createChannelsAndPermanenceTime <- function(input_data, output_data){
 
 
 
-readAndWriteFinalDataset <- function(output_path) {
+readAndWriteFinalDataset <- function(output_path, merge_aportaciones) {
   
   # Define the range of IDVERSIONS
   versions <- as.character(seq(ymd('2012-01-01'), ymd('2018-08-01'), by = 'months', format = "%Y-%m"))
@@ -761,6 +745,20 @@ readAndWriteFinalDataset <- function(output_path) {
                                 keys = 'IDMIEMBRO')
   
   # APORTACIONES
+  if (merge_aportaciones) {
+    print('Reading aportaciones data...')
+    dt <- data.table()
+    for (t in versions) {
+      print(t)
+      dt <- rbind(dt, fread(paste0(output_path, 'aportaciones/aportaciones_chunk_', t, '.csv'), sep = ';'))
+    }
+    setnames(dt, c('idmiembro', 'id_version'), c('IDMIEMBRO', 'IDVERSION'))
+    setkey(dt, IDMIEMBRO)
+    
+    fwrite(dt, file = paste0(output_path, '9_aportaciones_ETL.csv'), sep = ';')
+    rm('dt'); gc()
+  }
+  
   print('Performing a left join with the Aportaciones table')
   dt <- performLeftJoinFromFile(base_dt = dt, 
                                 filename = paste0(output_path, '9_aportaciones_ETL.csv'), 
