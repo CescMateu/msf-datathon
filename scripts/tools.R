@@ -1,5 +1,4 @@
-#library(dplyr)
-#library(stringr)
+
 
 
 getPreviousNextPeriod <- function(PERIODO, Next_or_Prev){
