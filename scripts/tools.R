@@ -65,11 +65,11 @@ performLeftJoinFromFile <- function(base_dt, filename, keys) {
     
   } else {
     
-    test <- fread(filename, sep = ';', nrows = 5)
+    # test <- fread(filename, sep = ';', nrows = 5)
     
-    if (!all(keys %in% colnames(test))) {
-      stop(paste0('Keys not found in colnames: ', paste0(colnames(test), collapse = ', ')))
-    }
+    # if (!all(keys %in% colnames(test))) {
+    #   stop(paste0('Keys not found in colnames: ', paste0(colnames(test), collapse = ', ')))
+    # }
     
     # Load data
     new_dt <- fread(filename, sep = ';')

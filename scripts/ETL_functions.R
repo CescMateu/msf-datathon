@@ -385,6 +385,10 @@ processAxesorTable <- function(input_path, output_path) {
   print('ETL: Processing Axesor table')
   
   axesor <- fread(file = paste0(input_path, '6-enriquecimiento_20170201.txt'))
+  miembros_filtrar <- fread(file = 'processed_data/miembros_a_filtrar.csv')[, IDMIEMBRO]
+  
+  axesor <- axesor[IDMIEMBRO %in% miembros_filtrar]
+  
   
   cols_factor <- c('ComunidadAutonoma', 'Provincia', 'Municipio', 'NivelEstudios', 'TipoFamilia', 'Nucleo',
                    'PerfilNucleo', 'T_Renta', 'T_TasaParo', 'MiembrosFamilia', 'Menores18', 'Entre18_45', 
@@ -644,7 +648,7 @@ createChannelsAndPermanenceTime <- function(input_data, output_data){
   print('ETL: Processing Permanence time and entrance channels')
   
   # Read data
-  clientes_filtrar <- fread(paste0(output_data,"/miembros_a_filtrar.csv"))$IDMIEMBRO
+  clientes_filtrar <- fread(paste0(output_data,"miembros_a_filtrar.csv"))$IDMIEMBRO
   dt <- fread(paste0(input_data,"/2.ALTASYBAJAS_train.txt"))
   
   # Filter data with the selected members
@@ -788,17 +792,17 @@ readAndWriteFinalDataset <- function(output_path, merge_aportaciones, fecha_inic
   
   # MAILINGS
   # Codi per canviar els noms de la taula de mailings creada per el Sergi
-  print('Performing a left join with the Mailings table')
-  dt <- performLeftJoinFromFile(base_dt = dt, 
-                                filename = paste0(output_path, '10_mailings_ETL.csv'), 
-                                keys = c('IDVERSION', 'IDMIEMBRO'))
+  # print('Performing a left join with the Mailings table')
+  # dt <- performLeftJoinFromFile(base_dt = dt, 
+  #                               filename = paste0(output_path, '10_mailings_ETL.csv'), 
+  #                               keys = c('IDVERSION', 'IDMIEMBRO'))
   
   
   # TLMK + AUMENTOS + PERMISOS COMUNICACION
-  print('Performing a left join with the TLMK/Aumentos/Permisos table')
-  dt <- performLeftJoinFromFile(base_dt = dt, 
-                                filename = paste0(output_path, 'tlmk_aumentos_permisos_ETL.csv'), 
-                                keys = c('IDVERSION', 'IDMIEMBRO'))
+  # print('Performing a left join with the TLMK/Aumentos/Permisos table')
+  # dt <- performLeftJoinFromFile(base_dt = dt, 
+  #                               filename = paste0(output_path, 'tlmk_aumentos_permisos_ETL.csv'), 
+  #                               keys = c('IDVERSION', 'IDMIEMBRO'))
   
   
   # Add one last variable, the month! Very importante!

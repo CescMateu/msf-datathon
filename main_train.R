@@ -1,6 +1,9 @@
 rm(list = ls())
 gc()
 
+
+source('scripts/tools_xgb.R')
+
 ########################################################################################################
 ###################################  INPUTS  ###########################################################
 ########################################################################################################
@@ -10,9 +13,10 @@ gc()
 run_id <- gsub(as.character(lubridate::now()), pattern = '-', replacement = '')
 run_id <- gsub(run_id, pattern = ' ', replacement = '_')
 run_id <- gsub(run_id, pattern = ':', replacement = '')
+run_id <- 'cesc2'
 
 #Path were the data is located & file_name
-file_train_name <-"processed_data/final_dataset.csv" 
+file_train_name <-"processed_data/final_dataset_alt.csv" 
 path_date <- ""
 
 
@@ -28,12 +32,18 @@ path_save_trainings <-  "output/"
 # Learning_rate
 LR <- 0.2
 # Number of rounds
-NROUNDS <- 500
+NROUNDS <- 50
 
 
 # Wheter to take a random sample of the training dataset and the proportion to keep
 take_a_sample <- FALSE
 prop_sample <- 0.1 #this would  only keep 10% of the full dataset regardless of the target
+
+
+# Feature selection
+feature_selection = FALSE
+#vars <- fread('processed_data/imp_vars20.csv', sep = ';')[, Feature]
+
 
 ########################################################################################################
 ########################################################################################################
@@ -89,6 +99,11 @@ dt <- fread(file_train_name, sep = ';')
 c <- colnames(dt)
 if("FALLECIDO" %in% c) dt[,FALLECIDO:=NULL,]
 
+
+if (feature_selection) {
+  dt <- dt[, .SD, .SDcols = c('IDVERSION', 'IDMIEMBRO', 'IND_BAIXA', vars)]
+}
+
 # Split the full dataset into train-test following a version criteria
 all_versions <- unique(dt[,IDVERSION])
 versions_train <-  all_versions[all_versions <= 201802]
@@ -104,7 +119,7 @@ if(take_a_sample){
 }
 
 #Define the out-of-time dataset for testing
-dt_test <- dt[IDVERSION == version_execution_test ]
+dt_test <- dt[IDVERSION == version_execution_test]
 target_test <- dt_test[,.(IDMIEMBRO, IND_BAIXA)]
 dt_test[,IND_BAIXA := NULL,]
 
@@ -171,7 +186,7 @@ bst <- xgb.train(params = params,
                  nrounds = NROUNDS, 
                  maximize = TRUE,
                  verbose = 1,
-                 early_stopping_rounds = 15)
+                 early_stopping_rounds = 5)
 
 #For fuck's sake, save the model please
 xgb.save(bst, fname = paste0("models/xgb_model_", run_id))
