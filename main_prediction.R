@@ -60,12 +60,13 @@ pred_table[IDMIEMBRO %in% IDMIEMBRO_churn, pred_cat := 1]
 # pred_table[,pred_cat:=ifelse(probability >=metrics[,optimal_cutoff],1,0 ),]
 # 
 # pred_table <- pred_table[,.(IDMIEMBRO, probability, pred_cat)]
-pred_table[, .N, by = pred_cat]
+pred_table[, .N, by = prediction]
 
 
 
 
 
 setnames(pred_table, "pred_cat","prediction")
+pred_table[, probability := NULL]
 
 fwrite(pred_table, paste0(path_save,"/prediction_201902.csv"))
