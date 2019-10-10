@@ -49,8 +49,8 @@ if (!only_final_join) {
 # Join all the data together
 readAndWriteFinalDataset(output_path, merge_aportaciones, 
                          fecha_inicial = '2017-01-01', fecha_final = '2018-08-01',
-                         output_name = 'final_dataset_alt.csv', exploitation = FALSE)
+                         output_name = 'final_dataset_alt2.csv', exploitation = FALSE)
 
 readAndWriteFinalDataset(output_path, merge_aportaciones, 
-                         output_name = 'exploitation_dataset_alt.csv', exploitation = TRUE)
+                         output_name = 'exploitation_dataset_alt2.csv', exploitation = TRUE)
 

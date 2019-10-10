@@ -13,10 +13,10 @@ source('scripts/tools_xgb.R')
 run_id <- gsub(as.character(lubridate::now()), pattern = '-', replacement = '')
 run_id <- gsub(run_id, pattern = ' ', replacement = '_')
 run_id <- gsub(run_id, pattern = ':', replacement = '')
-run_id <- 'cesc2'
+run_id <- 'argentina'
 
 #Path were the data is located & file_name
-file_train_name <-"processed_data/final_dataset_alt.csv" 
+file_train_name <-"processed_data/final_dataset_alt2.csv" 
 path_date <- ""
 
 
@@ -32,7 +32,7 @@ path_save_trainings <-  "output/"
 # Learning_rate
 LR <- 0.2
 # Number of rounds
-NROUNDS <- 50
+NROUNDS <- 10
 
 
 # Wheter to take a random sample of the training dataset and the proportion to keep
@@ -80,8 +80,8 @@ loadPackages(pckgs_to_load)
 if(!file.exists(path_save_trainings)) dir.create(path_save_trainings)
 
 # Create a directory for oos and oot results
-path_save_oos <- paste0(path_save_trainings,"out_of_sample_results/")
-path_save_oot <- paste0(path_save_trainings,"out_of_time_results/")
+path_save_oos <- paste0(path_save_trainings,"out_of_sample_results_argentina/")
+path_save_oot <- paste0(path_save_trainings,"out_of_time_results_argentina/")
 if(!file.exists(path_save_oos)) dir.create(path_save_oos)
 if(!file.exists(path_save_oot)) dir.create(path_save_oot)
 
