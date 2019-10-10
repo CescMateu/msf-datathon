@@ -32,7 +32,7 @@ createTargetVar <- function(input_path, output_path) {
   dt_bajas[, max(FECHA_PROC)]
   
   # Create a sequence of IDVERSIONS between the min date and the max date
-  versions <- as.character(seq(ymd('2012-01-01'), ymd('2019-02-01'), by = 'months', format = "%Y-%m"))
+  versions <- as.character(seq(ymd('2017-01-01'), ymd('2019-02-01'), by = 'months', format = "%Y-%m"))
   versions2 <- substr(gsub("-","",versions),1,6)
   
   #################################################
@@ -117,12 +117,12 @@ createTargetVar <- function(input_path, output_path) {
       dt_aux <- dt_aux[, .(IDMIEMBRO, IND_BAIXA)]
       dt_aux[, IDVERSION := t]
       
-      N_zeros = nrow(dt_aux[IND_BAIXA == 0])
-      
-      # We erase 50% of the 0's that we have in each month
-      dt_aux_1 <- dt_aux[IND_BAIXA == 1]
-      dt_aux_0 <- dt_aux[IND_BAIXA == 0][sample(1:N_zeros, size = floor(nrow(dt_aux_1) * 15), replace = FALSE)]
-      dt_aux <- rbind(dt_aux_0, dt_aux_1)
+      # N_zeros = nrow(dt_aux[IND_BAIXA == 0])
+      # 
+      # # We erase 50% of the 0's that we have in each month
+      # dt_aux_1 <- dt_aux[IND_BAIXA == 1]
+      # dt_aux_0 <- dt_aux[IND_BAIXA == 0][sample(1:N_zeros, size = floor(nrow(dt_aux_1) * 15), replace = FALSE)]
+      # dt_aux <- rbind(dt_aux_0, dt_aux_1)
       
       # Write the data in separated data files
       fwrite(x = dt_aux, file = paste0(output_path, 'target/bajas_', t, '.csv'), sep = ';')
@@ -140,7 +140,7 @@ createPrimaryMembers <- function(input_path, output_path) {
   
   print('ETL: Creating the base of our members')
   
-  versions <- as.character(seq(ymd('2012-01-01'), ymd('2018-08-01'), by = 'months', format = "%Y-%m"))
+  versions <- as.character(seq(ymd('2017-01-01'), ymd('2018-08-01'), by = 'months', format = "%Y-%m"))
   versions <- substr(gsub("-","",versions),1,6)
   
   dt <- data.table()
@@ -254,7 +254,7 @@ processInteractionsTable <- function(input_path, output_path) {
   
   versions <- as.character(seq(ymd('1987-01-01'), ymd('2019-02-01'), by = 'months', format = "%Y-%m"))
   versions2 <- substr(gsub("-","",versions),1,6)
-  versions3 <- versions2[versions2 > 201112]
+  versions3 <- versions2[versions2 >= 201701]
   
   out <- merge(N_INTER_MES, miembros_filtrar, by="IDMIEMBRO")
   
@@ -425,7 +425,7 @@ processAportacionesTable <- function(input_path, output_path) {
   
   versions <- as.character(seq(ymd('1987-01-01'), ymd('2019-02-01'), by = 'months', format = "%Y-%m"))
   versions2 <- substr(gsub("-","",versions),1,6)
-  versions3 <- versions2[versions2 > 201112]
+  versions3 <- versions2[versions2 >= 201701]
   
   #Volem construir variables agregades a 3m 6m i 12m a partir de les aportacions, per tipuis d'aportacio
   # donatiu o aportacio periodica
@@ -686,7 +686,7 @@ createChannelsAndPermanenceTime <- function(input_data, output_data){
   dt_filt[,version_alta:=NULL,]
   
   #Loop sobre cada id version
-  versions <- as.character(seq(ymd('2012-01-01'), ymd('2019-02-01'), by = 'months', format = "%Y-%m"))
+  versions <- as.character(seq(ymd('2017-01-01'), ymd('2019-02-01'), by = 'months', format = "%Y-%m"))
   versions2 <- substr(gsub("-","",versions),1,6)
   
   dt_list <- list()
