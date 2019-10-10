@@ -14,12 +14,11 @@ labelEncoder <- function(x){
 }
 #Path  where the model is located
 
-path_model <- "models/xgb_model_20191009_184329"
+path_model <- "models/xgb_model_argentina_winner"
 
 
 #Path for the data
-path_data <- "processed_data"
-file_name <-"exploitation_dataset.csv"
+expl_filename <- 'processed_data/exploitation_dataset_cescSE_noAport.csv'
 
 #Path save
 
@@ -30,7 +29,7 @@ path_save <-"output/"
 bst <-  xgb.load(paste0(path_model))
 
 
-dt_ex <- fread(paste0(path_data,"/", file_name))
+dt_ex <- fread(expl_filename)
 dt_ex[,names(dt_ex) := lapply(.SD, FUN = labelEncoder ), .SDcols = names(dt_ex)]
 
 #Convert to D-Matrix
@@ -48,12 +47,23 @@ pred <- predict(bst, dex)
 pred_table <- data.table(IDMIEMBRO = dt_ex[,IDMIEMBRO],
                          probability = pred)
 
-#Load the optimal cutoff
-metrics <- fread("output/out_of_sample_results/metrics.csv")
-pred_table[,pred_cat:=ifelse(probability >=metrics[,optimal_cutoff],1,0 ),]
+# Choose the 2% with more probability
+n_churn <- ceiling(nrow(pred_table) * 0.02)
 
-pred_table <- pred_table[,.(IDMIEMBRO,pred_cat)]
+IDMIEMBRO_churn <- pred_table[order(-probability)][1:n_churn, IDMIEMBRO]
+
+pred_table[, pred_cat := 0]
+pred_table[IDMIEMBRO %in% IDMIEMBRO_churn, pred_cat := 1]
+
+# #Load the optimal cutoff
+# metrics <- fread("output/out_of_sample_results/metrics.csv")
+# pred_table[,pred_cat:=ifelse(probability >=metrics[,optimal_cutoff],1,0 ),]
+# 
+# pred_table <- pred_table[,.(IDMIEMBRO, probability, pred_cat)]
 pred_table[, .N, by = pred_cat]
+
+
+
 
 
 setnames(pred_table, "pred_cat","prediction")

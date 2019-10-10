@@ -750,30 +750,30 @@ readAndWriteFinalDataset <- function(output_path, merge_aportaciones, fecha_inic
                                 filename = paste0(output_path, '1_individuos_ETL.csv'), 
                                 keys = 'IDMIEMBRO')
   # AXESOR
-  print('Performing a left join with the Axesor table')
-  dt <- performLeftJoinFromFile(base_dt = dt, 
-                                filename = paste0(output_path, '6_axesor_ETL.csv'), 
-                                keys = 'IDMIEMBRO')
+  # print('Performing a left join with the Axesor table')
+  # dt <- performLeftJoinFromFile(base_dt = dt, 
+  #                               filename = paste0(output_path, '6_axesor_ETL.csv'), 
+  #                               keys = 'IDMIEMBRO')
   
-  # APORTACIONES
-  if (merge_aportaciones) {
-    print('Reading aportaciones data...')
-    dt <- data.table()
-    for (t in versions) {
-      print(t)
-      dt <- rbind(dt, fread(paste0(output_path, 'aportaciones/aportaciones_chunk_', t, '.csv'), sep = ';'))
-    }
-    setnames(dt, c('idmiembro', 'id_version'), c('IDMIEMBRO', 'IDVERSION'))
-    setkey(dt, IDMIEMBRO)
-    
-    fwrite(dt, file = paste0(output_path, '9_aportaciones_ETL.csv'), sep = ';')
-    rm('dt'); gc()
-  }
-  
-  print('Performing a left join with the Aportaciones table')
-  dt <- performLeftJoinFromFile(base_dt = dt, 
-                                filename = paste0(output_path, '9_aportaciones_ETL.csv'), 
-                                keys = c('IDVERSION', 'IDMIEMBRO'))
+  # # APORTACIONES
+  # if (merge_aportaciones) {
+  #   print('Reading aportaciones data...')
+  #   dt <- data.table()
+  #   for (t in versions) {
+  #     print(t)
+  #     dt <- rbind(dt, fread(paste0(output_path, 'aportaciones/aportaciones_chunk_', t, '.csv'), sep = ';'))
+  #   }
+  #   setnames(dt, c('idmiembro', 'id_version'), c('IDMIEMBRO', 'IDVERSION'))
+  #   setkey(dt, IDMIEMBRO)
+  #   
+  #   fwrite(dt, file = paste0(output_path, '9_aportaciones_ETL.csv'), sep = ';')
+  #   rm('dt'); gc()
+  # }
+  # 
+  # print('Performing a left join with the Aportaciones table')
+  # dt <- performLeftJoinFromFile(base_dt = dt, 
+  #                               filename = paste0(output_path, '9_aportaciones_ETL.csv'), 
+  #                               keys = c('IDVERSION', 'IDMIEMBRO'))
   
   
   # TIEMPO ALTA + CANALIDAD ENTRADA

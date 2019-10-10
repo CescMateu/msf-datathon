@@ -13,10 +13,10 @@ source('scripts/tools_xgb.R')
 run_id <- gsub(as.character(lubridate::now()), pattern = '-', replacement = '')
 run_id <- gsub(run_id, pattern = ' ', replacement = '_')
 run_id <- gsub(run_id, pattern = ':', replacement = '')
-run_id <- 'argentina'
+run_id <- 'argentina_winner'
 
 #Path were the data is located & file_name
-file_train_name <-"processed_data/final_dataset_alt2.csv" 
+file_train_name <-"processed_data/final_dataset_alt_cescSE_noAport.csv" 
 path_date <- ""
 
 
@@ -80,8 +80,8 @@ loadPackages(pckgs_to_load)
 if(!file.exists(path_save_trainings)) dir.create(path_save_trainings)
 
 # Create a directory for oos and oot results
-path_save_oos <- paste0(path_save_trainings,"out_of_sample_results_argentina/")
-path_save_oot <- paste0(path_save_trainings,"out_of_time_results_argentina/")
+path_save_oos <- paste0(path_save_trainings,"out_of_sample_results_argentina_winner/")
+path_save_oot <- paste0(path_save_trainings,"out_of_time_results_argentina_winner/")
 if(!file.exists(path_save_oos)) dir.create(path_save_oos)
 if(!file.exists(path_save_oot)) dir.create(path_save_oot)
 
